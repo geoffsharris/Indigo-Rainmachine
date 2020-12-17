@@ -11,7 +11,7 @@
                     <Option value="Cloud">Cloud</Option>
                 </List>
             </Field>
-            <Field id="IPaddressLabel" type="label" fontSize="med" alignText="center" visibleBindingId="connectionType" visibleBindingValue="Local">
+            <Field id="ip_address_label" type="label" fontSize="med" alignText="center" visibleBindingId="connectionType" visibleBindingValue="Local">
                 <Label>Example 10.0.1.1</Label>
             </Field>
             <Field id="ip_address" type="textfield"  defaultValue="10.0.1.x" visibleBindingId="connectionType" visibleBindingValue="Local" tooltip="Enter the IP address of the Rain Machine. You should set up a static IP address for the device.">
@@ -69,16 +69,11 @@
         </ConfigUI>
 
         <States>
-            <State id="deviceIsOnline">
-                <ValueType boolType="OnOff">Boolean</ValueType>
-                <TriggerLabel>Device online?</TriggerLabel>
-                <ControlPageLabel>Device online?</ControlPageLabel>
-            </State>
 
-            <State id="deviceTimestamp">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Device Timestamp</TriggerLabel>
-                <ControlPageLabel>Device Timestamp</ControlPageLabel>
+            <State id="isWatering">
+                <ValueType boolType="OnOff">Boolean</ValueType>
+                <TriggerLabel>Currently Watering</TriggerLabel>
+                <ControlPageLabel>Currently Watering</ControlPageLabel>
             </State>
 
             <State id="currentProgram">
@@ -98,13 +93,15 @@
                 <TriggerLabel>Minutes left for current zone</TriggerLabel>
                 <ControlPageLabel>Minutes left for current zone</ControlPageLabel>
             </State>
-            <State id="programMinutesLeft">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Minutes left for current program</TriggerLabel>
-                <ControlPageLabel>Minutes left for current program</ControlPageLabel>
+
+            <State id="deviceIsOnline">
+                <ValueType boolType="OnOff">Boolean</ValueType>
+                <TriggerLabel>Device online?</TriggerLabel>
+                <ControlPageLabel>Device online?</ControlPageLabel>
             </State>
+
         </States>
-        <UiDisplayStateId>zoneNumber</UiDisplayStateId>
+        <UiDisplayStateId>zoneMinutesLeft</UiDisplayStateId>
 
     </Device>
 
