@@ -27,12 +27,8 @@ class Watering:
 
     def zone(self):
         """Return the queue of active watering activities."""
-        #data = self._request("get", "watering/zone")
-        #return data["zones"]
         return self._request("get", "watering/zone")
 
     def program(self):
         """Return the queue of active watering activities."""
-        #data = self._request("get", "watering/program")
-        #return data["programs"]
         return self._request("get", "watering/program")

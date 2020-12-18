@@ -23,4 +23,3 @@ class Program:
     def stop(self, program_id):
         """Stop a program."""
         return self._request("post", "program/{}/stop".format(program_id))
-

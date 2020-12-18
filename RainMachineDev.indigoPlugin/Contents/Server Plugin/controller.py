@@ -29,7 +29,6 @@ class Controller:  # pylint: disable=too-many-instance-attributes
         self.software_version = None
         self.connection_type = None
 
-
         # API endpoints:
         self.programs = Program(self._request)
         self.provisioning = Provision(self._request)

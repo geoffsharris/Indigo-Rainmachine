@@ -30,6 +30,7 @@ class Plugin(indigo.PluginBase):
 		self.client = Client()
 		self.next_update_programs = time.time()
 		self.update_queue = []
+		self.controllers = {}
 
 ################################################################################
 	def __del__(self):
@@ -46,10 +47,8 @@ class Plugin(indigo.PluginBase):
 		self.debugLog(u"shutdown called")
 		indigo.server.log("shutdown called")
 
-
 ################################################################################
 	def deviceStartComm(self, device):
-
 		self.debugLog("Starting device: " + device.name)
 		if device.pluginProps["deviceMAC"]:
 			indigo.server.log("device exists MAC: " + str(device.pluginProps["deviceMAC"]))
@@ -61,10 +60,6 @@ class Plugin(indigo.PluginBase):
 		if device.id in self.rainmachine_devices:
 			indigo.server.log("Existing Device id: " + str(device.id) + " : MAC = " + self.rainmachine_devices[device.id])
 		self.rainmachine_devices[device.id] = device.pluginProps["deviceMAC"]
-		#indigo.server.log("Plugin k,v: " + str(self.rainmachine_devices))
-		#if device.pluginProps.has_key("connectionType"):
-		#	for kd, vd in device.pluginProps.items():
-		#		indigo.server.log(str(kd) + " : " + str(vd))
 		indigo.server.log("Device Start Communication")
 		self.user_name = device.pluginProps["username"]
 		self.password = device.pluginProps["password"]
@@ -82,23 +77,24 @@ class Plugin(indigo.PluginBase):
 				self.client.load_remote(self.user_name, self.password)
 			else:
 				indigo.server.log("No, key: does not exists in dictionary")
-
+		if device.pluginProps["deviceMAC"] in self.controllers:
+			indigo.server.log("Device logged in")
 		self.mac_address = self.rainmachine_devices[device.id]
 		self.controller = self.client.controllers[self.mac_address]
 		self.program_list = self.controller.programs.all()
 		self.zone_list = self.controller.zones.all()
 
-		## Update status on server: ##
+		# Update status on server: #
 		device.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-		device.updateStateOnServer('deviceIsOnline', value=True, clearErrorState=True)
+		device.updateStateOnServer('device_online', value=True, clearErrorState=True)
 
 ################################################################################
-	def deviceStopComm(self,device):
+	def deviceStopComm(self, device):
 		self.debugLog("Stopping device: " + device.name)
 		indigo.server.log("Device Stop Communication")
 		if device.id in self.rainmachine_devices:
 			device.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
-			device.updateStateOnServer('deviceIsOnline', value=False, clearErrorState=True)
+			device.updateStateOnServer('device_online', value=False, clearErrorState=True)
 			del self.rainmachine_devices[device.id]
 
 ################################################################################
@@ -117,18 +113,18 @@ class Plugin(indigo.PluginBase):
 			for kd in zone_data[u'zones']:
 				if kd[u'state'] != 0:
 					self.debugLog("zone {} is on for {} seconds".format(kd[u'name'], (kd[u'remaining'])))
-					device.updateStateOnServer('zoneNumber', value=str(kd[u'name']), clearErrorState=True)
-					device.updateStateOnServer('zoneMinutesLeft', value=(round(kd[u'remaining'] / 60)),
-											   uiValue=(str(round(kd[u'remaining'] / 60)) + " min"),
-											   clearErrorState=True)
-					device.updateStateOnServer('isWatering', value='on', clearErrorState=True)
+					device.updateStateOnServer('current_zone', kd[u'name'], clearErrorState=True)
+					device.updateStateOnServer('minutes_left', int(round(kd[u'remaining'] / 60)),
+                                               uiValue=str(int(round(kd[u'remaining'] / 60))) + " min",
+                                               clearErrorState=True)
+					device.updateStateOnServer('active_watering', 'on', clearErrorState=True)
 					device.updateStateImageOnServer(indigo.kStateImageSel.SprinklerOn)
 					counter += 1
 			if counter == 0:
 				self.debugLog("no active zones")
-				device.updateStateOnServer('zoneNumber', value='all off', clearErrorState=True)
-				device.updateStateOnServer('zoneMinutesLeft', value=0, uiValue='0 min', clearErrorState=True)
-				device.updateStateOnServer('isWatering', value='off', clearErrorState=True)
+				device.updateStateOnServer('current_zone', 'all off', clearErrorState=True)
+				device.updateStateOnServer('minutes_left', 0, uiValue='0 min', clearErrorState=True)
+				device.updateStateOnServer('active_watering', 'off', clearErrorState=True)
 				device.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 
 			program_data = self.activeProgram(deviceId)
@@ -136,41 +132,40 @@ class Plugin(indigo.PluginBase):
 				self.debugLog("program data : " + str(program_data))
 				self.debugLog("program data available")
 				for kd in program_data[u'programs']:
-					device.updateStateOnServer('currentProgram', value=str(kd[u'name']), clearErrorState=True)
+					device.updateStateOnServer('current_program', kd[u'name'], clearErrorState=True)
 			else:
-				device.updateStateOnServer('currentProgram', value='none', clearErrorState=True)
+				device.updateStateOnServer('current_program', 'none', clearErrorState=True)
 				self.debugLog("program data should be none")
 
 		if time.time() > self.next_update_programs:
 			counter = 0
 			for key, value in self.rainmachine_devices.items():
 				deviceId = key
-				#deviceMAC = value
-				#self.debugLog("device ID:" + str(deviceId) + " MAC : " + str(deviceMAC))
 				device = indigo.devices[deviceId]
-
 				zone_data = self.activeZone(deviceId)
 				for kd in zone_data[u'zones']:
 					if kd[u'state'] != 0:
 						#self.debugLog("zone {} is on for {} seconds".format(kd[u'name'], (kd[u'remaining'])))
-						device.updateStateOnServer('zoneNumber', value=str(kd[u'name']), clearErrorState=True)
-						device.updateStateOnServer('zoneMinutesLeft', value=(round(kd[u'remaining'] / 60)),
-												   uiValue=(str(round(kd[u'remaining'] / 60)) + " min"),
-												   clearErrorState=True)
+						device.updateStateOnServer('current_zone', kd[u'name'], clearErrorState=True)
+						device.updateStateOnServer('minutes_left', round(kd[u'remaining'] / 60),
+                                                   uiValue = str(int(round(kd[u'remaining'] / 60))) + " min",
+                                                   clearErrorState = True)
+						device.updateStateOnServer('active_watering', 'on', clearErrorState=True)
 						device.updateStateImageOnServer(indigo.kStateImageSel.SprinklerOn)
 						counter += 1
 				if counter == 0:
-					device.updateStateOnServer('zoneNumber', value='all off', clearErrorState=True)
-					device.updateStateOnServer('zoneMinutesLeft', value='0', uiValue='0 min', clearErrorState=True)
+					device.updateStateOnServer('current_zone', 'all off', clearErrorState=True)
+					device.updateStateOnServer('minutes_left', 0, uiValue='0 min', clearErrorState=True)
+					device.updateStateOnServer('active_watering', 'off', clearErrorState=True)
 					device.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
 
 				program_data = self.activeProgram(deviceId)
 				if program_data[u'programs']:
 					self.debugLog("program data : " + str(program_data))
 					for kd in program_data[u'programs']:
-						device.updateStateOnServer('currentProgram', value=str(kd[u'name']), clearErrorState=True)
+						device.updateStateOnServer('current_program', kd[u'name'], clearErrorState=True)
 				else:
-					device.updateStateOnServer('currentProgram', value='none', clearErrorState=True)
+					device.updateStateOnServer('current_program', 'none', clearErrorState=True)
 					self.debugLog("program data should be none: " + str(program_data))
 
 			self.next_update_programs = time.time() + 60
@@ -191,38 +186,35 @@ class Plugin(indigo.PluginBase):
 			self.logger.debug(u"runConcurrentThread ending")
 			pass
 
-
 	def stopConcurrentThread(self):
 		self.stopThread = True
 	#####################################
-	############ Run Program ############
+	#            Run Program            #
 	#####################################
 	def actionRunProgram(self, pluginAction):
-
 		deviceId = int(pluginAction.props['indigo_rainmachine_controller'])
 		device = indigo.devices[deviceId]
 		controller = self.controllers[device.pluginProps["deviceMAC"]]
 		controller.programs.start(pluginAction.props["ProgramValue"])
+		indigo.server.log("Starting Program: " + str(pluginAction.props["ProgramValue"]))
 
 		self.update_queue.append(deviceId)
 		self.update()
 
 	def actionStopProgram(self, pluginAction):
-
 		deviceId = int(pluginAction.props['indigo_rainmachine_controller'])
 		device = indigo.devices[deviceId]
 		controller = self.controllers[device.pluginProps["deviceMAC"]]
 		controller.programs.stop(pluginAction.props["ProgramValue"])
+		indigo.server.log("Stopping Program: " + str(pluginAction.props["ProgramValue"]))
 
 		self.update_queue.append(deviceId)
 		self.update()
 
-
 	#####################################
-	############ Run Zones ############
+	#              Run Zones            #
 	#####################################
 	def actionRunZones(self, pluginAction):
-
 		deviceId = int(pluginAction.props['indigo_rainmachine_controller'])
 		device = indigo.devices[int(pluginAction.props['indigo_rainmachine_controller'])]
 		controller = self.controllers[device.pluginProps["deviceMAC"]]
@@ -233,7 +225,6 @@ class Plugin(indigo.PluginBase):
 		self.update()
 
 	def actionStopZones(self, pluginAction):
-
 		deviceId = int(pluginAction.props['indigo_rainmachine_controller'])
 		device = indigo.devices[int(pluginAction.props['indigo_rainmachine_controller'])]
 		controller = self.controllers[device.pluginProps["deviceMAC"]]
@@ -243,9 +234,7 @@ class Plugin(indigo.PluginBase):
 		self.update_queue.append(deviceId)
 		self.update()
 
-
 	def actionAllOff(self, pluginAction):
-
 		deviceId = int(pluginAction.props['indigo_rainmachine_controller'])
 		device = indigo.devices[int(pluginAction.props['indigo_rainmachine_controller'])]
 		controller = self.controllers[device.pluginProps["deviceMAC"]]
@@ -255,9 +244,7 @@ class Plugin(indigo.PluginBase):
 		self.update_queue.append(deviceId)
 		self.update()
 
-
 	def availableSchedules(self, filter="", valuesDict=None, typeId="", targetId=0):
-
 		passed_schedule_list = []
 		if 'indigo_rainmachine_controller' in valuesDict:
 			device = indigo.devices[int(valuesDict['indigo_rainmachine_controller'])]
@@ -268,9 +255,7 @@ class Plugin(indigo.PluginBase):
 			self.debugLog("indigo.mac.id : " + str(device.pluginProps['deviceMAC']))
 		return passed_schedule_list
 
-
 	def availableZones(self, filter="", valuesDict=None, typeId="", targetId=0):
-
 		passed_zone_list = []
 		if 'indigo_rainmachine_controller' in valuesDict:
 			device = indigo.devices[int(valuesDict['indigo_rainmachine_controller'])]
@@ -280,10 +265,8 @@ class Plugin(indigo.PluginBase):
 		return passed_zone_list
 
 	def availableDevices(self, filter="", valuesDict=None, typeId="", targetId=0):
-
 		controller_list = [(controller.mac, controller.name + " : "+ controller.connection_type) for controller in self.client.controllers.values()]
 		return controller_list
-
 
 	def loginDevices(self, valuesDict, typeId, devId):
 		if valuesDict["connectionType"] == 'Local':
@@ -294,15 +277,12 @@ class Plugin(indigo.PluginBase):
 			indigo.server.log("Error in login")
 		pass
 
-
 	def menuChanged(self, valuesDict, typeId, devId):
 		return valuesDict
 
-
 	######################
-	## Update functions ##
+	#  Update functions  #
 	######################
-
 	def activeZone(self, deviceId):
 		device = indigo.devices[deviceId]
 		controller = self.controllers[device.pluginProps['deviceMAC']]
@@ -314,3 +294,12 @@ class Plugin(indigo.PluginBase):
 		controller = self.controllers[device.pluginProps['deviceMAC']]
 		current_program = controller.watering.program()
 		return current_program
+
+	def toggleDebugging(self):
+		if self.debug:
+			self.logger.info("Turning off debug logging")
+			self.pluginPrefs["showDebugInfo"] = False
+		else:
+			self.logger.info("Turning on debug logging")
+			self.pluginPrefs["showDebugInfo"] = True
+		self.debug = not self.debug

@@ -70,38 +70,38 @@
 
         <States>
 
-            <State id="isWatering">
+            <State id="active_watering">
                 <ValueType boolType="OnOff">Boolean</ValueType>
                 <TriggerLabel>Currently Watering</TriggerLabel>
                 <ControlPageLabel>Currently Watering</ControlPageLabel>
             </State>
 
-            <State id="currentProgram">
+            <State id="current_program">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Current Program</TriggerLabel>
                 <ControlPageLabel>Current Program</ControlPageLabel>
             </State>
 
-            <State id="zoneNumber">
+            <State id="current_zone">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Current Zone</TriggerLabel>
                 <ControlPageLabel>Current Zone</ControlPageLabel>
             </State>
 
-            <State id="zoneMinutesLeft">
+            <State id="minutes_left">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Minutes left for current zone</TriggerLabel>
                 <ControlPageLabel>Minutes left for current zone</ControlPageLabel>
             </State>
 
-            <State id="deviceIsOnline">
+            <State id="device_online">
                 <ValueType boolType="OnOff">Boolean</ValueType>
                 <TriggerLabel>Device online?</TriggerLabel>
                 <ControlPageLabel>Device online?</ControlPageLabel>
             </State>
 
         </States>
-        <UiDisplayStateId>zoneMinutesLeft</UiDisplayStateId>
+        <UiDisplayStateId>minutes_left</UiDisplayStateId>
 
     </Device>
 

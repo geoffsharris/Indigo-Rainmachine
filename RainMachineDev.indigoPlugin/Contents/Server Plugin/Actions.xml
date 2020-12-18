@@ -3,7 +3,7 @@
 -->
 <Actions>
     <Action id="runSchedule" uiPath="DeviceActions">
-        <Name>Run RainMachine Schedule</Name>
+        <Name>Run Schedule</Name>
         <CallbackMethod>actionRunProgram</CallbackMethod>
         <ConfigUI>
             <Field id="indigo_rainmachine_controller" type="menu" tooltip="Select device">
@@ -21,7 +21,7 @@
         </ConfigUI>
     </Action>
     <Action id="stopSchedule" uiPath="DeviceActions">
-        <Name>Stop RainMachine Schedule</Name>
+        <Name>Stop Schedule</Name>
         <CallbackMethod>actionStopProgram</CallbackMethod>
         <ConfigUI>
             <Field id="indigo_rainmachine_controller" type="menu" tooltip="Select device">
@@ -30,7 +30,7 @@
                 <CallbackMethod>menuChanged</CallbackMethod>
             </Field>
             <Field id="ProgramDesc" type="label">
-                <Label>Select Desired Program from list below</Label>
+                <Label>Select desired program from list below</Label>
             </Field>
             <Field type="menu" id="ProgramValue">
                 <Label>Schedule: </Label>
@@ -39,7 +39,7 @@
         </ConfigUI>
     </Action>
     <Action id="runZone" uiPath="DeviceActions">
-        <Name>Run RainMachine zone</Name>
+        <Name>Run Zone</Name>
         <CallbackMethod>actionRunZones</CallbackMethod>
         <ConfigUI>
             <Field id="indigo_rainmachine_controller" type="menu" tooltip="Select device">
@@ -48,7 +48,7 @@
                 <CallbackMethod>menuChanged</CallbackMethod>
             </Field>
             <Field id="ZoneDesc" type="label">
-                <Label>Select Desired Zone from list below</Label>
+                <Label>Select desired zone from list below</Label>
             </Field>
             <Field type="menu" id="ZoneValue" visibleBindingId="indigo_rainmachine_controller">
                 <Label>Zones: </Label>
@@ -60,7 +60,7 @@
         </ConfigUI>
     </Action>
 		<Action id="stopZone" uiPath="DeviceActions">
-        <Name>Stop zone</Name>
+        <Name>Stop Zone</Name>
         <CallbackMethod>actionStopZones</CallbackMethod>
         <ConfigUI>
             <Field id="indigo_rainmachine_controller" type="menu" tooltip="Select device">
@@ -69,7 +69,7 @@
                 <CallbackMethod>menuChanged</CallbackMethod>
             </Field>
             <Field id="ZoneDesc" type="label">
-                <Label>Select Desired Zone from list below</Label>
+                <Label>Select desired zone from list below</Label>
             </Field>
             <Field type="menu" id="ZoneValue" visibleBindingId="indigo_rainmachine_controller">
                 <Label>Zones: </Label>

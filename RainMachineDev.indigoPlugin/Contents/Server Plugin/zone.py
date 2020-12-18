@@ -23,4 +23,3 @@ class Zone:
     def get(self, zone_id):
         """Return a specific zone."""
         return self._request("get", "zone/{}".format(zone_id))
-
